@@ -9,6 +9,8 @@
     <version>0.1.0</version>
     <packaging>pom</packaging>
     <name>LangChain4j GigaChat :: Parent POM</name>
+    <description>Parent POM for LangChain4j GigaChat submodules</description>
+    <url>https://github.com/vitalyzotov/langchain4j-gigachat</url>
 
     <properties>
         <maven.compiler.source>8</maven.compiler.source>
