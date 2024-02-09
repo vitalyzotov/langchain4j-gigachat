@@ -12,9 +12,7 @@ import io.grpc.ManagedChannelBuilder;
 import lombok.Builder;
 
 import java.time.Duration;
-import java.time.Instant;
 import java.util.List;
-import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
 import static dev.langchain4j.internal.Utils.getOrDefault;
@@ -22,9 +20,8 @@ import static dev.langchain4j.internal.ValidationUtils.ensureNotEmpty;
 
 public class GigachatChatModel implements ChatLanguageModel {
 
-    private final AtomicReference<AccessToken> accessToken = new AtomicReference<>();
     private final ChatServiceGrpc.ChatServiceBlockingStub client;
-    private final GigachatAuthClient authClient;
+    private final GigachatClient gigachatClient;
     private final Double temperature;
     private final Integer maxTokens;
     private final Double topP;
@@ -39,11 +36,11 @@ public class GigachatChatModel implements ChatLanguageModel {
      * @param topP         the top-p parameter for generating chat responses
      * @param modelName    the name of the model to use. Examples: GigaChat-Plus, GigaChat-Pro, GigaChat:latest, GigaChat.
      *                     Default: GigaChat
-     * @param timeout      the timeout duration for Auth API requests
+     * @param timeout      the timeout duration for API requests
      *                     <p>
      *                     The default value is 60 seconds
      * @param logRequests  a flag indicating whether to log API requests
-     * @param logResponses a flag indicating whether to log Auth API responses
+     * @param logResponses a flag indicating whether to log API responses
      */
     @Builder
     public GigachatChatModel(
@@ -59,8 +56,9 @@ public class GigachatChatModel implements ChatLanguageModel {
             Boolean logResponses
     ) {
         Boolean logReq = getOrDefault(logRequests, false);
-        this.authClient = GigachatAuthClient.builder()
-                .baseUrl("https://ngw.devices.sberbank.ru:9443")
+        this.gigachatClient = GigachatClient.builder()
+                .baseAuthUrl(DefaultGigachatHelper.GIGACHAT_AUTH_URL)
+                .baseApiUrl(DefaultGigachatHelper.GIGACHAT_API_URL)
                 .clientId(clientId)
                 .clientSecret(clientSecret)
                 .scope(scope)
@@ -73,13 +71,7 @@ public class GigachatChatModel implements ChatLanguageModel {
         this.topP = getOrDefault(topP, 0.47);
         this.modelName = getOrDefault(modelName, "GigaChat");
         final ManagedChannel channel = ManagedChannelBuilder.forTarget(DefaultGigachatHelper.GIGACHAT_TARGET).build();
-        final BearerToken credentials = new BearerToken(() -> {
-            final AccessToken token =
-                    accessToken.updateAndGet(t ->
-                            t != null && t.expiresAt() != null && Instant.now().isBefore(t.expiresAt()) ?
-                                    t : refreshToken());
-            return token.value();
-        });
+        final BearerToken credentials = new BearerToken(() -> gigachatClient.getAccessToken().value());
         client = ChatServiceGrpc.newBlockingStub(channel)
                 .withInterceptors(logReq ? new ClientInterceptor[]{new GrpcLoggingInterceptor()} :
                         new ClientInterceptor[0])
@@ -109,11 +101,6 @@ public class GigachatChatModel implements ChatLanguageModel {
                 DefaultGigachatHelper.tokenUsageFrom(chat.getUsage()),
                 DefaultGigachatHelper.finishReasonFrom(choice.getFinishReason())
         );
-    }
-
-    private AccessToken refreshToken() {
-        AuthResponse token = authClient.getToken();
-        return new AccessToken(Instant.now().plusMillis(token.getExpiresAt()), token.getAccessToken());
     }
 
 }

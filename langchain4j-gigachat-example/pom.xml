@@ -35,7 +35,7 @@
     <dependencies>
         <dependency>
             <groupId>dev.langchain4j</groupId>
-            <artifactId>langchain4j-open-ai</artifactId>
+            <artifactId>langchain4j-core</artifactId>
         </dependency>
 
         <dependency>

@@ -10,6 +10,8 @@ import dev.langchain4j.model.output.TokenUsage;
 import gigachat.v1.Gigachatv1;
 import okhttp3.Headers;
 
+import java.util.Collection;
+import java.util.Objects;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
@@ -17,7 +19,10 @@ import static dev.langchain4j.model.output.FinishReason.LENGTH;
 import static dev.langchain4j.model.output.FinishReason.STOP;
 
 class DefaultGigachatHelper {
+    static final String GIGACHAT_AUTH_URL = "https://ngw.devices.sberbank.ru:9443";
+    static final String GIGACHAT_API_URL = "https://gigachat.devices.sberbank.ru";
     static final String GIGACHAT_TARGET = "gigachat.devices.sberbank.ru";
+    static final String GIGACHAT_EMBEDDINGS_MODEL_NAME = "Embeddings";
 
     static FinishReason finishReasonFrom(String gigachatFinishReason) {
         if (gigachatFinishReason == null) {
@@ -43,6 +48,14 @@ class DefaultGigachatHelper {
                 usage.getCompletionTokens(),
                 usage.getTotalTokens()
         );
+    }
+
+    static TokenUsage tokenUsageFrom(Collection<GigachatEmbeddingUsage> usage) {
+        if (usage == null) {
+            return null;
+        }
+        return new TokenUsage(usage.stream().map(GigachatEmbeddingUsage::getPromptTokens).filter(Objects::nonNull)
+                .reduce(Integer::sum).orElse(null));
     }
 
     static String toGigachatMessageContent(ChatMessage message) {
