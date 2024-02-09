@@ -5,9 +5,8 @@
     <modelVersion>4.0.0</modelVersion>
     <parent>
         <groupId>ru.vzotov</groupId>
-        <artifactId>langchain4j-gigachat-parent</artifactId>
+        <artifactId>langchain4j-gigachat-aggregator</artifactId>
         <version>0.1.0</version>
-        <relativePath>../langchain4j-gigachat-parent/pom.xml</relativePath>
     </parent>
 
     <artifactId>langchain4j-gigachat-example</artifactId>
