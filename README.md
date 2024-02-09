@@ -16,12 +16,12 @@ langchain4j-gigachat is an unofficial implementation of the [GigaChat](https://d
       <dependency>
           <groupId>ru.vzotov</groupId>
           <artifactId>langchain4j-gigachat</artifactId>
-          <version>1.0</version>
+          <version>0.1.0</version>
       </dependency>
       ```
     - Gradle:
       ```
-      implementation 'ru.vzotov:langchain4j-gigachat:1.0'
+      implementation 'ru.vzotov:langchain4j-gigachat:0.1.0'
       ```
 
 ## Specifics of SSL support
