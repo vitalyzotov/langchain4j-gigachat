@@ -14,6 +14,7 @@
     <artifactId>langchain4j-gigachat</artifactId>
 
     <name>LangChain4j GigaChat :: Main module</name>
+    <url>https://github.com/vitalyzotov/langchain4j-gigachat</url>
 
     <properties>
         <maven.compiler.source>8</maven.compiler.source>

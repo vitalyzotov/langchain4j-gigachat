@@ -1,0 +1,1 @@
+org.springframework.boot.autoconfigure.EnableAutoConfiguration=ru.vzotov.langchain4j.gigachat.spring.AutoConfig
