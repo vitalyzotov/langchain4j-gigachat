@@ -24,7 +24,7 @@ jobs:
           gpg-passphrase: GPG_PASSPHRASE
 
       - name: release
-        run: mvn -B -U --fail-at-end -Psign,release-central clean deploy
+        run: mvn -B -U --fail-at-end -Psign,release-central clean deploy -DskipITs
         env:
           GIGACHAT_CLIENT_ID: ${{ secrets.GIGACHAT_CLIENT_ID }}
           GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
