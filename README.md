@@ -12,7 +12,7 @@ Langchain4j compatibility:
 
 | langchain4j-gigachat | langchain4j |
 |---------------------:|------------:|
-|                0.1.1 |      0.27.1 |
+|                0.1.2 |      0.27.1 |
 |                0.1.0 |      0.26.1 |
 
 ## Getting started
@@ -23,12 +23,12 @@ Langchain4j compatibility:
       <dependency>
           <groupId>ru.vzotov</groupId>
           <artifactId>langchain4j-gigachat</artifactId>
-          <version>0.1.1</version>
+          <version>0.1.2</version>
       </dependency>
       ```
     - Gradle:
       ```
-      implementation 'ru.vzotov:langchain4j-gigachat:0.1.1'
+      implementation 'ru.vzotov:langchain4j-gigachat:0.1.2'
       ```
 
 ## Specifics of SSL support
