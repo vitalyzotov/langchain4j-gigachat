@@ -7,7 +7,7 @@
     <parent>
         <groupId>ru.vzotov</groupId>
         <artifactId>langchain4j-gigachat-parent</artifactId>
-        <version>0.1.2</version>
+        <version>0.1.3-SNAPSHOT</version>
         <relativePath>../langchain4j-gigachat-parent/pom.xml</relativePath>
     </parent>
 
