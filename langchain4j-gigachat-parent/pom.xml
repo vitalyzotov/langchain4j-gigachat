@@ -23,7 +23,7 @@
         <retrofit.version>2.9.0</retrofit.version>
         <slf4j-api.version>2.0.7</slf4j-api.version>
         <protobuf.version>3.25.1</protobuf.version>
-        <grpc.version>1.61.0</grpc.version>
+        <grpc.version>1.46.0</grpc.version>
         <annotations-api.version>6.0.53</annotations-api.version>
         <spring.boot.version>2.7.18</spring.boot.version>
     </properties>
@@ -42,6 +42,12 @@
                 <groupId>com.google.protobuf</groupId>
                 <artifactId>protobuf-java</artifactId>
                 <version>${protobuf.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>io.grpc</groupId>
+                <artifactId>grpc-netty-shaded</artifactId>
+                <version>${grpc.version}</version>
             </dependency>
 
             <dependency>
