@@ -10,6 +10,8 @@ import io.grpc.ClientInterceptor;
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
 import lombok.Builder;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.time.Duration;
 import java.util.List;
@@ -19,7 +21,7 @@ import static dev.langchain4j.internal.Utils.getOrDefault;
 import static dev.langchain4j.internal.ValidationUtils.ensureNotEmpty;
 
 public class GigachatChatModel implements ChatLanguageModel {
-
+    private static final Logger LOGGER = LoggerFactory.getLogger(GigachatChatModel.class);
     private final ChatServiceGrpc.ChatServiceBlockingStub client;
     private final GigachatClient gigachatClient;
     private final Double temperature;
@@ -81,6 +83,7 @@ public class GigachatChatModel implements ChatLanguageModel {
     @Override
     public Response<AiMessage> generate(List<ChatMessage> messages) {
         ensureNotEmpty(messages, "messages");
+        LOGGER.debug("prompt: {}", messages);
         Gigachatv1.ChatResponse chat = client.chat(Gigachatv1.ChatRequest.newBuilder()
                 .setModel(this.modelName)
                 .setOptions(Gigachatv1.ChatOptions.newBuilder()
@@ -96,8 +99,10 @@ public class GigachatChatModel implements ChatLanguageModel {
                 .build());
 
         Gigachatv1.Alternative choice = chat.getAlternativesList().get(0);
+        AiMessage response = AiMessage.from(choice.getMessage().getContent());
+        LOGGER.debug("response: {}", response);
         return Response.from(
-                AiMessage.from(choice.getMessage().getContent()),
+                response,
                 DefaultGigachatHelper.tokenUsageFrom(chat.getUsage()),
                 DefaultGigachatHelper.finishReasonFrom(choice.getFinishReason())
         );
