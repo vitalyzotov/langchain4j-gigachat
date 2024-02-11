@@ -8,6 +8,13 @@ langchain4j-gigachat is an unofficial implementation of the [GigaChat](https://d
 
 - Java: 8 or higher
 
+Langchain4j compatibility:
+
+| langchain4j-gigachat | langchain4j |
+|---------------------:|------------:|
+|                0.1.1 |      0.27.1 |
+|                0.1.0 |      0.26.1 |
+
 ## Getting started
 
 1. Add LangChain4j Gigachat dependency to your project:

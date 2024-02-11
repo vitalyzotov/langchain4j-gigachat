@@ -18,7 +18,7 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
         <!-- Versions -->
-        <langchain4j.version>0.26.1</langchain4j.version>
+        <langchain4j.version>0.27.1</langchain4j.version>
         <lombok.version>1.18.30</lombok.version>
         <retrofit.version>2.9.0</retrofit.version>
         <slf4j-api.version>2.0.7</slf4j-api.version>
