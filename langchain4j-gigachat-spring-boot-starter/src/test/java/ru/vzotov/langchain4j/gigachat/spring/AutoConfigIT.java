@@ -31,8 +31,7 @@ class AutoConfigIT {
                 .withPropertyValues(
                         "langchain4j.gigachat.chat-model.client-id=" + GIGACHAT_CLIENT_ID,
                         "langchain4j.gigachat.chat-model.client-secret=" + GIGACHAT_CLIENT_SECRET,
-                        "langchain4j.gigachat.chat-model.scope=" + GIGACHAT_SCOPE,
-                        "langchain4j.open-ai.chat-model.max-tokens=20"
+                        "langchain4j.gigachat.chat-model.scope=" + GIGACHAT_SCOPE
                 )
                 .run(context -> {
 
