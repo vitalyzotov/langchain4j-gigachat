@@ -6,7 +6,7 @@
 
     <groupId>ru.vzotov</groupId>
     <artifactId>langchain4j-gigachat-parent</artifactId>
-    <version>0.1.3</version>
+    <version>0.1.4-SNAPSHOT</version>
     <packaging>pom</packaging>
     <name>LangChain4j GigaChat :: Parent POM</name>
     <description>Parent POM for LangChain4j GigaChat submodules</description>
