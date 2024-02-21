@@ -55,7 +55,7 @@ public class GigachatClient {
                 .writeTimeout(timeout);
 
         OkHttpClient.Builder apiClientBuilder = new OkHttpClient.Builder()
-                .addInterceptor(new AuthInterceptor(() -> getAccessToken().value()))
+                .addInterceptor(new AuthInterceptor(() -> getAccessToken().value(), this::authorize))
                 .callTimeout(timeout)
                 .connectTimeout(timeout)
                 .readTimeout(timeout)
@@ -135,15 +135,21 @@ public class GigachatClient {
         return new RuntimeException(retrofitResponse.message());
     }
 
+    void authorize() {
+        accessToken.set(refreshToken());
+    }
+
     AccessToken getAccessToken() {
-        return accessToken.updateAndGet(t ->
-                        t != null && t.expiresAt() != null && Instant.now().isBefore(t.expiresAt()) ?
-                                t : refreshToken());
+        return accessToken.updateAndGet(t -> {
+            Instant expiresAt = t == null ? null : t.expiresAt();
+            LOGGER.debug("Token expires at {}", expiresAt);
+            return expiresAt != null && Instant.now().isBefore(expiresAt) ? t : refreshToken();
+        });
     }
 
     private AccessToken refreshToken() {
         AuthResponse token = token();
-        return new AccessToken(Instant.now().plusMillis(token.getExpiresAt()), token.getAccessToken());
+        return new AccessToken(Instant.ofEpochMilli(token.getExpiresAt()), token.getAccessToken());
     }
 
 }

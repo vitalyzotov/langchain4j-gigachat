@@ -3,6 +3,8 @@ package ru.vzotov.langchain4j.gigachat;
 import io.grpc.CallCredentials;
 import io.grpc.Metadata;
 import io.grpc.Status;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.Objects;
 import java.util.concurrent.Executor;
@@ -16,6 +18,8 @@ import static io.grpc.Metadata.ASCII_STRING_MARSHALLER;
  * This token is then used to create an Authorization header which is applied to the request metadata.
  */
 class BearerToken extends CallCredentials {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(BearerToken.class);
 
     private final Supplier<String> tokenSupplier;
 
@@ -39,6 +43,7 @@ class BearerToken extends CallCredentials {
                         String.format("%s %s", "Bearer", tokenSupplier.get()));
                 applier.apply(headers);
             } catch (Throwable e) {
+                LOGGER.debug("Error when trying to get a token", e);
                 applier.fail(Status.UNAUTHENTICATED.withCause(e));
             }
         });

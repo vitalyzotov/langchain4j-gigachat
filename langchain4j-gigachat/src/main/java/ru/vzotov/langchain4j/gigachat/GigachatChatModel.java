@@ -9,6 +9,8 @@ import gigachat.v1.Gigachatv1;
 import io.grpc.ClientInterceptor;
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
+import io.grpc.Status;
+import io.grpc.StatusRuntimeException;
 import lombok.Builder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -17,6 +19,7 @@ import java.time.Duration;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import static dev.langchain4j.internal.RetryUtils.withRetry;
 import static dev.langchain4j.internal.Utils.getOrDefault;
 import static dev.langchain4j.internal.ValidationUtils.ensureNotEmpty;
 
@@ -84,19 +87,29 @@ public class GigachatChatModel implements ChatLanguageModel {
     public Response<AiMessage> generate(List<ChatMessage> messages) {
         ensureNotEmpty(messages, "messages");
         LOGGER.debug("prompt: {}", messages);
-        Gigachatv1.ChatResponse chat = client.chat(Gigachatv1.ChatRequest.newBuilder()
-                .setModel(this.modelName)
-                .setOptions(Gigachatv1.ChatOptions.newBuilder()
-                        .setTemperature(this.temperature.floatValue())
-                        .setMaxTokens(this.maxTokens)
-                        .setTopP(this.topP.floatValue())
-                        .build())
-                .addAllMessages(messages.stream().map(msg -> Gigachatv1.Message.newBuilder()
-                                .setRole(DefaultGigachatHelper.toGigachatRole(msg.type()).getValue())
-                                .setContent(DefaultGigachatHelper.toGigachatMessageContent(msg))
+
+        Gigachatv1.ChatResponse chat = withRetry(() -> {
+            try {
+                return client.chat(Gigachatv1.ChatRequest.newBuilder()
+                        .setModel(this.modelName)
+                        .setOptions(Gigachatv1.ChatOptions.newBuilder()
+                                .setTemperature(this.temperature.floatValue())
+                                .setMaxTokens(this.maxTokens)
+                                .setTopP(this.topP.floatValue())
                                 .build())
-                        .collect(Collectors.toList()))
-                .build());
+                        .addAllMessages(messages.stream().map(msg -> Gigachatv1.Message.newBuilder()
+                                        .setRole(DefaultGigachatHelper.toGigachatRole(msg.type()).getValue())
+                                        .setContent(DefaultGigachatHelper.toGigachatMessageContent(msg))
+                                        .build())
+                                .collect(Collectors.toList()))
+                        .build());
+            } catch (StatusRuntimeException e) {
+                if (e.getStatus().getCode() == Status.Code.UNAUTHENTICATED) {
+                    gigachatClient.authorize();
+                }
+                throw e;
+            }
+        }, 2);
 
         Gigachatv1.Alternative choice = chat.getAlternativesList().get(0);
         AiMessage response = AiMessage.from(choice.getMessage().getContent());
@@ -107,5 +120,4 @@ public class GigachatChatModel implements ChatLanguageModel {
                 DefaultGigachatHelper.finishReasonFrom(choice.getFinishReason())
         );
     }
-
 }

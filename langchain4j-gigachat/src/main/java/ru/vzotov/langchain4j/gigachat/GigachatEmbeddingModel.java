@@ -75,7 +75,7 @@ public class GigachatEmbeddingModel implements EmbeddingModel {
         GigachatEmbeddingResponse response = withRetry(() -> client.embedding(request), maxRetries);
 
         List<Embedding> embeddings = response.getData().stream()
-                .map(mistralAiEmbedding -> Embedding.from(mistralAiEmbedding.getEmbedding()))
+                .map(gigachatEmbedding -> Embedding.from(gigachatEmbedding.getEmbedding()))
                 .collect(toList());
 
         return Response.from(
