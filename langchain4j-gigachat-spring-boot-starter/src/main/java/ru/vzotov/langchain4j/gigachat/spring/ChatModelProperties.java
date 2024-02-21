@@ -18,4 +18,6 @@ class ChatModelProperties {
     Integer maxTokens;
     Duration timeout;
     Integer maxRetries;
+    Boolean logRequests;
+    Boolean logResponses;
 }

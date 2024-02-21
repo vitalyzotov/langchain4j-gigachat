@@ -26,6 +26,8 @@ public class AutoConfig {
                 .topP(chatModelProperties.getTopP())
                 .maxTokens(chatModelProperties.getMaxTokens())
                 .timeout(chatModelProperties.getTimeout())
+                .logRequests(chatModelProperties.getLogRequests())
+                .logResponses(chatModelProperties.getLogResponses())
                 .build();
     }
 
@@ -40,6 +42,8 @@ public class AutoConfig {
                 .modelName(embeddingModelProperties.getModelName())
                 .timeout(embeddingModelProperties.getTimeout())
                 .maxRetries(embeddingModelProperties.getMaxRetries())
+                .logRequests(embeddingModelProperties.getLogRequests())
+                .logResponses(embeddingModelProperties.getLogResponses())
                 .build();
     }
 }

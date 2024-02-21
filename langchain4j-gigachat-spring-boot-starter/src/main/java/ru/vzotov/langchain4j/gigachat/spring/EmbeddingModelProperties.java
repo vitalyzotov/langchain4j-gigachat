@@ -15,4 +15,6 @@ class EmbeddingModelProperties {
     String modelName;
     Duration timeout;
     Integer maxRetries;
+    Boolean logRequests;
+    Boolean logResponses;
 }
