@@ -6,7 +6,7 @@
     <parent>
         <groupId>ru.vzotov</groupId>
         <artifactId>langchain4j-gigachat-aggregator</artifactId>
-        <version>0.1.4-SNAPSHOT</version>
+        <version>0.1.4</version>
     </parent>
 
     <artifactId>langchain4j-gigachat-example</artifactId>
