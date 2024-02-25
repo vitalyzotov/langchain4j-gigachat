@@ -1,4 +1,4 @@
-package ru.vzotov.langchain4j.gigachat;
+package ru.vzotov.langchain4j.gigachat.api;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

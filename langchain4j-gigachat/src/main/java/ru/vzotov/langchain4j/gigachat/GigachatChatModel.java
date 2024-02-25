@@ -4,18 +4,15 @@ import dev.langchain4j.data.message.AiMessage;
 import dev.langchain4j.data.message.ChatMessage;
 import dev.langchain4j.model.chat.ChatLanguageModel;
 import dev.langchain4j.model.output.Response;
-import gigachat.v1.ChatServiceGrpc;
-import gigachat.v1.Gigachatv1;
-import io.grpc.ClientInterceptor;
-import io.grpc.ManagedChannel;
-import io.grpc.ManagedChannelBuilder;
-import io.grpc.Status;
-import io.grpc.StatusRuntimeException;
 import lombok.Builder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import ru.vzotov.langchain4j.gigachat.api.GigachatCompletionsRequest;
+import ru.vzotov.langchain4j.gigachat.api.GigachatCompletionsResponse;
+import ru.vzotov.langchain4j.gigachat.api.GigachatMessage;
 
 import java.time.Duration;
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -25,12 +22,12 @@ import static dev.langchain4j.internal.ValidationUtils.ensureNotEmpty;
 
 public class GigachatChatModel implements ChatLanguageModel {
     private static final Logger LOGGER = LoggerFactory.getLogger(GigachatChatModel.class);
-    private final ChatServiceGrpc.ChatServiceBlockingStub client;
     private final GigachatClient gigachatClient;
     private final Double temperature;
     private final Integer maxTokens;
     private final Double topP;
     private final String modelName;
+    private final Integer maxRetries;
 
     /**
      * @param clientId     the Client Id for authentication
@@ -58,29 +55,39 @@ public class GigachatChatModel implements ChatLanguageModel {
             String modelName,
             Duration timeout,
             Boolean logRequests,
-            Boolean logResponses
+            Boolean logResponses,
+            Integer maxRetries,
+            boolean useGrpc
     ) {
-        Boolean logReq = getOrDefault(logRequests, false);
-        this.gigachatClient = GigachatClient.builder()
-                .baseAuthUrl(DefaultGigachatHelper.GIGACHAT_AUTH_URL)
-                .baseApiUrl(DefaultGigachatHelper.GIGACHAT_API_URL)
-                .clientId(clientId)
-                .clientSecret(clientSecret)
-                .scope(scope)
-                .timeout(getOrDefault(timeout, Duration.ofSeconds(60)))
-                .logRequests(logReq)
-                .logResponses(getOrDefault(logResponses, false))
-                .build();
+        this.maxRetries = getOrDefault(maxRetries, 3);
+
+        this.gigachatClient = useGrpc
+                ?
+                GrpcGigachatClient.builder()
+                        .baseAuthUrl(DefaultGigachatHelper.GIGACHAT_AUTH_URL)
+                        .baseApiUrl(DefaultGigachatHelper.GIGACHAT_API_URL)
+                        .clientId(clientId)
+                        .clientSecret(clientSecret)
+                        .scope(scope)
+                        .timeout(getOrDefault(timeout, Duration.ofSeconds(60)))
+                        .logRequests(getOrDefault(logRequests, false))
+                        .logResponses(getOrDefault(logResponses, false))
+                        .build()
+                :
+                RestGigachatClient.builder()
+                        .baseAuthUrl(DefaultGigachatHelper.GIGACHAT_AUTH_URL)
+                        .baseApiUrl(DefaultGigachatHelper.GIGACHAT_API_URL)
+                        .clientId(clientId)
+                        .clientSecret(clientSecret)
+                        .scope(scope)
+                        .timeout(getOrDefault(timeout, Duration.ofSeconds(60)))
+                        .logRequests(getOrDefault(logRequests, false))
+                        .logResponses(getOrDefault(logResponses, false))
+                        .build();
         this.temperature = getOrDefault(temperature, 0.87);
         this.maxTokens = getOrDefault(maxTokens, 1024);
         this.topP = getOrDefault(topP, 0.47);
         this.modelName = getOrDefault(modelName, "GigaChat");
-        final ManagedChannel channel = ManagedChannelBuilder.forTarget(DefaultGigachatHelper.GIGACHAT_TARGET).build();
-        final BearerToken credentials = new BearerToken(() -> gigachatClient.getAccessToken().value());
-        client = ChatServiceGrpc.newBlockingStub(channel)
-                .withInterceptors(logReq ? new ClientInterceptor[]{new GrpcLoggingInterceptor()} :
-                        new ClientInterceptor[0])
-                .withCallCredentials(credentials);
     }
 
     @Override
@@ -88,35 +95,25 @@ public class GigachatChatModel implements ChatLanguageModel {
         ensureNotEmpty(messages, "messages");
         LOGGER.debug("prompt: {}", messages);
 
-        Gigachatv1.ChatResponse chat = withRetry(() -> {
-            try {
-                return client.chat(Gigachatv1.ChatRequest.newBuilder()
-                        .setModel(this.modelName)
-                        .setOptions(Gigachatv1.ChatOptions.newBuilder()
-                                .setTemperature(this.temperature.floatValue())
-                                .setMaxTokens(this.maxTokens)
-                                .setTopP(this.topP.floatValue())
-                                .build())
-                        .addAllMessages(messages.stream().map(msg -> Gigachatv1.Message.newBuilder()
-                                        .setRole(DefaultGigachatHelper.toGigachatRole(msg.type()).getValue())
-                                        .setContent(DefaultGigachatHelper.toGigachatMessageContent(msg))
-                                        .build())
-                                .collect(Collectors.toList()))
-                        .build());
-            } catch (StatusRuntimeException e) {
-                if (e.getStatus().getCode() == Status.Code.UNAUTHENTICATED) {
-                    gigachatClient.authorize();
-                }
-                throw e;
-            }
-        }, 2);
+        GigachatCompletionsRequest request = GigachatCompletionsRequest.builder()
+                .model(this.modelName)
+                .temperature(this.temperature)
+                .maxTokens(this.maxTokens.longValue())
+                .topP(this.topP)
+                .messages(messages.stream().map(msg -> GigachatMessage.builder()
+                        .role(DefaultGigachatHelper.toGigachatRole(msg.type()).getValue())
+                        .content(DefaultGigachatHelper.toGigachatMessageContent(msg))
+                        .build()).collect(Collectors.toList()))
+                .build();
 
-        Gigachatv1.Alternative choice = chat.getAlternativesList().get(0);
+        GigachatCompletionsResponse result = withRetry(() -> gigachatClient.completion(request), maxRetries);
+
+        GigachatCompletionsResponse.Choice choice = result.getChoices().get(0);
         AiMessage response = AiMessage.from(choice.getMessage().getContent());
         LOGGER.debug("response: {}", response);
         return Response.from(
                 response,
-                DefaultGigachatHelper.tokenUsageFrom(chat.getUsage()),
+                DefaultGigachatHelper.tokenUsageFrom(Collections.singleton(result.getUsage())),
                 DefaultGigachatHelper.finishReasonFrom(choice.getFinishReason())
         );
     }

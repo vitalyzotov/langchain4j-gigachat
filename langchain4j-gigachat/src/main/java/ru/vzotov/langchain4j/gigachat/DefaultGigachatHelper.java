@@ -9,6 +9,7 @@ import dev.langchain4j.model.output.FinishReason;
 import dev.langchain4j.model.output.TokenUsage;
 import gigachat.v1.Gigachatv1;
 import okhttp3.Headers;
+import ru.vzotov.langchain4j.gigachat.api.GigachatUsage;
 
 import java.util.Collection;
 import java.util.Objects;
@@ -50,11 +51,11 @@ class DefaultGigachatHelper {
         );
     }
 
-    static TokenUsage tokenUsageFrom(Collection<GigachatEmbeddingUsage> usage) {
+    static TokenUsage tokenUsageFrom(Collection<GigachatUsage> usage) {
         if (usage == null) {
             return null;
         }
-        return new TokenUsage(usage.stream().map(GigachatEmbeddingUsage::getPromptTokens).filter(Objects::nonNull)
+        return new TokenUsage(usage.stream().map(GigachatUsage::getPromptTokens).filter(Objects::nonNull)
                 .reduce(Integer::sum).orElse(null));
     }
 

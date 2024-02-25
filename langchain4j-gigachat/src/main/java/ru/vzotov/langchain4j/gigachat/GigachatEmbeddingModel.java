@@ -5,6 +5,9 @@ import dev.langchain4j.data.segment.TextSegment;
 import dev.langchain4j.model.embedding.EmbeddingModel;
 import dev.langchain4j.model.output.Response;
 import lombok.Builder;
+import ru.vzotov.langchain4j.gigachat.api.GigachatEmbedding;
+import ru.vzotov.langchain4j.gigachat.api.GigachatEmbeddingRequest;
+import ru.vzotov.langchain4j.gigachat.api.GigachatEmbeddingResponse;
 
 import java.time.Duration;
 import java.util.List;
@@ -51,7 +54,7 @@ public class GigachatEmbeddingModel implements EmbeddingModel {
             Boolean logRequests,
             Boolean logResponses,
             Integer maxRetries) {
-        this.client = GigachatClient.builder()
+        this.client = RestGigachatClient.builder()
                 .baseAuthUrl(GIGACHAT_AUTH_URL)
                 .baseApiUrl(GIGACHAT_API_URL)
                 .clientId(clientId)

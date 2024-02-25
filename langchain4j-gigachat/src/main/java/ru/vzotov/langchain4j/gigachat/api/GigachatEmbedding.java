@@ -1,4 +1,4 @@
-package ru.vzotov.langchain4j.gigachat;
+package ru.vzotov.langchain4j.gigachat.api;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -15,5 +15,5 @@ public class GigachatEmbedding {
     private String object;
     private List<Float> embedding;
     private Integer index;
-    private GigachatEmbeddingUsage usage;
+    private GigachatUsage usage;
 }

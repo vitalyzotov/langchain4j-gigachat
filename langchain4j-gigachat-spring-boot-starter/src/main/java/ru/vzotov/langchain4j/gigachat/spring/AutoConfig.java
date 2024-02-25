@@ -26,6 +26,7 @@ public class AutoConfig {
                 .topP(chatModelProperties.getTopP())
                 .maxTokens(chatModelProperties.getMaxTokens())
                 .timeout(chatModelProperties.getTimeout())
+                .maxRetries(chatModelProperties.getMaxRetries())
                 .logRequests(chatModelProperties.getLogRequests())
                 .logResponses(chatModelProperties.getLogResponses())
                 .build();
